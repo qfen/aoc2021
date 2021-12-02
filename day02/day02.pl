@@ -1,6 +1,7 @@
 #!/usr/local/bin/perl
 # https://adventofcode.com/2021/day/2
 # https://adventofcode.com/2021/day/2/input
+# Usage: day02.pl < FILE
 
 use v5.28;
 use warnings;
