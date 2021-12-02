@@ -4,8 +4,9 @@
 
 use v5.28;
 use warnings;
+no warnings 'experimental::smartmatch';
 
-my($forward, $down) = (0, 0);
+my($forward, $part1_depth, $part2_depth) = (0, 0, 0);
 my($dir, $dist);
 
 while (my $line = <STDIN>) {
@@ -14,10 +15,17 @@ while (my $line = <STDIN>) {
 	($dir, $dist) = ($1, int $2);
 
 	for ($dir) {
-		$forward += $dist if $_ eq 'forward';
-		$down += $dist    if $_ eq 'down';
-		$down -= $dist    if $_ eq 'up';
+		when ('forward') {
+			$forward += $dist;
+			$part2_depth += $dist * $part1_depth;
+		}
+
+		$part1_depth += $dist when 'down';
+		$part1_depth -= $dist when 'up';
+
+		default { warn "unknown direction '$dir'"; }
 	}
 }
 
-say $forward * $down;
+say 'part 1: ', $forward * $part1_depth;
+say 'part 2: ', $forward * $part2_depth;
