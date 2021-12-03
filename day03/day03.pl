@@ -26,6 +26,11 @@ say "part 1: ", $gamma * $epsilon;
 
 # part 2
 
+# filter_bits(current, sum, width, invert)
+# current: arrayref with initial state of list to filter
+# sum: total number of 1 bits in the first column of $current
+# width: number of bits in a row
+# invert: 0 to select most common bits, 1 to select least common
 sub filter_bits {
 	my($current, $sum, $width, $invert) = @_;
 	my($prev, $bit, $next_sum);
