@@ -48,6 +48,7 @@ sub score_board {
 
 my($line, @seq, $sum, $board, $index, $score);
 my($first_win, $first_score) = (~0, 0);
+my($last_win, $last_score) = (0, 0);
 
 $line = <STDIN>;
 chomp $line;
@@ -61,6 +62,12 @@ while (! eof STDIN) {
 		$first_win = $index;
 		$first_score = $score;
 	}
+
+	if ($index > $last_win) {
+		$last_win = $index;
+		$last_score = $score;
+	}
 }
 
 say "part 1 score: $first_score";
+say "part 2 score: $last_score";
