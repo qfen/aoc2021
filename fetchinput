@@ -1,0 +1,10 @@
+#!/usr/local/bin/perl
+
+use v5.28;
+use warnings;
+
+my $cookie = "session=53616c7465645f5f388832df5073806c0d542af44597f2361f073127253982a6bc0c2d5d070800c8336c9baa7556976e";
+my $day = int $ARGV[0] or die "Usage: $0 DAY (where day is in 1..25)";
+warn "fetch day $day";
+my $exit = system(qq!curl -O --create-dirs --output-dir day$day --cookie "$cookie" https://adventofcode.com/2020/day/$day/input!);
+warn "exit status $exit";
