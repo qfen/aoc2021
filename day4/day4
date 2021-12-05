@@ -1,0 +1,40 @@
+#!/usr/local/bin/perl
+use v5.28;
+
+# for validating whitespace-separated entries in the form name:value
+# validation sub in index 0
+# then compile a regex in index 1 for extracting the value portion
+my %validators = (
+	byr => [ sub { 1920 <= $_[0] <= 2002 } ],
+	iyr => [ sub { 2010 <= $_[0] <= 2020 } ],
+	eyr => [ sub { 2020 <= $_[0] <= 2030 } ],
+	hgt => [ sub {
+		($_[0] =~ /^(\d+)(cm|in)$/) and
+		(	($2 eq 'cm' and 150 <= $1 <= 193) or
+			($2 eq 'in' and 59 <= $1 <= 76));
+	} ],
+	hcl => [ sub { $_[0] =~ /^#[0-9a-f]{6}$/i } ],
+	ecl => [ sub { $_[0] =~ /^(amb|blu|brn|gry|grn|hzl|oth)$/ } ],
+	pid => [ sub { $_[0] =~ /^\d{9}$/ } ]
+);
+push $validators{$_}->@*, qr/(?:^|\s)$_:([^\s]+)/ for (keys %validators);
+
+my($record, $part1, $part2, $valid);
+$/ = ''; # paragraph mode
+
+OUTER:
+while ($record = <>) {
+	chomp $record;
+	$valid = 1;
+
+	for (keys %validators) {
+		next OUTER unless $record =~ $validators{$_}->[1];
+		$valid = 0 unless $validators{$_}->[0]->($1);
+	}
+
+	$part1++;
+	$part2 += $valid;
+}
+
+say "part 1: $part1";
+say "part 2: $part2";
