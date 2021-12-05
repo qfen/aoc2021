@@ -1,0 +1,19 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+
+my($min, $max) = (~0, 0);
+my($seat, @part2);
+
+while (<>) {
+	chomp;
+	/^ [FB]{7} [LR]{3} $/x or warn "weird line";
+	$seat = oct( '0b' . $_ =~ tr/FLBR/0011/r );
+
+	$max = $seat if $seat > $max;
+	$min = $seat if $seat < $min;
+	$part2[$seat] = 1;
+}
+
+say 'part 1: ', $max;
+say 'part 2: ', join(' ', grep { !defined $part2[$_] } ($min .. $max));
