@@ -1,0 +1,27 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+
+my @map;
+my @slope = ([1, 1], [3, 1], [5, 1], [7, 1], [1, 2]);
+my $product = 1;
+
+while (<>) {
+	chomp;
+	push @map, [ map { $_ eq '#' } split(//, $_) ];
+}
+
+while (@slope) {
+	my($x_inc, $y_inc) = @{ shift @slope };
+	my($x, $y, $trees) = (0, 0, 0);
+	while ($y < @map) {
+		$trees++ if $map[$y][$x]; # "backwards" purposely
+		$y += $y_inc;
+		$x = ($x + $x_inc) % $map[0]->@*;
+	}
+
+	$product *= $trees;
+	say "$x_inc,$y_inc -> $trees";
+}
+
+say $product;
