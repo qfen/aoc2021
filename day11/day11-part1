@@ -1,0 +1,50 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+use List::Util 'reduce';
+
+use constant {
+	SEAT => 0,
+	OCC => 1,
+	ADJ => 2
+};
+
+# grid: [ [ seat? , occupied? , adjacent ] ]
+my @grid = ( [ ] );
+
+while (<STDIN>) {
+	chomp;
+	push @grid, [ map { [ $_ eq 'L' ? 1 : 0, 0, 0 ] } '?', split(//) ];
+}
+
+my $change = 1;
+my($ref, $neighbor, $row, $col);
+while ($change) {
+	$change = 0;
+
+	for ($row = 1; $row < @grid; $row++) {
+		for ($col = 1; $col < $grid[$row]->@*; $col++) {
+			$ref = $grid[$row]->[$col];
+
+			if ($ref->[OCC] and $ref->[ADJ] >= 4) {
+				$change = 1;
+				$ref->[OCC] = 0;
+			}
+
+			if ($ref->[SEAT] and !$ref->[OCC] and $ref->[ADJ] == 0) {
+				$change = 1;
+				$ref->[OCC] = 1;
+			}
+
+			$ref->[ADJ] = 0;
+			for ([-1,-1], [-1,0], [-1,1], [0,-1]) {
+				$neighbor = $grid[$row + $_->[0]]->[$col + $_->[1]];
+				$ref->[ADJ]++ if $neighbor->[OCC];
+				$neighbor->[ADJ]++ if $ref->[OCC];
+			}
+
+		}
+	}
+}
+
+say reduce {$a + grep { $_->[OCC] } $b->@*} 0, @grid;
