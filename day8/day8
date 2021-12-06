@@ -1,0 +1,47 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+
+my @prog;
+
+while (<>) {
+	chomp;
+	/^(nop|acc|jmp) ([\-\+]\d+)$/ or die "unrecognized mnemonic";
+	for ($1) {
+		no warnings 'experimental::smartmatch';
+		push @prog, [0, 0] when 'nop';
+		push @prog, [1, int $2] when 'acc';
+		push @prog, [2, int $2] when 'jmp';
+	}
+}
+
+sub halt { # returns (halted, accumulator)
+	my($pc, $acc, @history) = (0, 0);
+	while ($pc < @prog) {
+		return (0, $acc) if $history[$pc];
+		$history[$pc] = 1;
+		if ($prog[$pc]->[0] == 2) {
+			# jump
+			$pc += $prog[$pc]->[1];
+		} else {
+			# acc or nop
+			$acc += $prog[$pc]->[1] if $prog[$pc]->[0];
+			$pc++;
+		}
+	}
+	return (1, $acc);
+}
+
+say "part 1: ", (halt())[1];
+
+my ($addr, $old, $halt, $acc);
+for ($addr = 0; $addr < @prog; $addr++) {
+	$old = $prog[$addr]->[0];
+	next if $old == 1; # leave acc alone
+	$prog[$addr]->[0] = 2 - $old;
+	($halt, $acc) = halt();
+	last if $halt;
+	$prog[$addr]->[0] = $old;
+}
+
+say "part 2: ", ( $halt ? $acc : "[failed]" );
