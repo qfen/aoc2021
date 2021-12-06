@@ -15,20 +15,13 @@ while ($block = <>) {
 	$part1_sum += scalar keys %part1_set;
 
 	# part 2
-	$part2_init = 1;
+	%part2_set = %part1_set;
 	for $line (split /\n/, $block) {
 		%part2_temp = ();
 		@part2_temp{ $line =~ m/[a-z]/g } = ();
 
-		if ($part2_init) {
-			$part2_init = 0;
-			%part2_set = %part2_temp;
-		} else {
-			# set intersection
-			for (keys %part2_set) {
-				delete $part2_set{$_} unless exists $part2_temp{$_};
-			}
-		}
+		# set intersection
+		exists($part2_temp{$_}) || delete($part2_set{$_}) for keys %part2_set;
 	}
 
 	$part2_sum += scalar keys %part2_set;
