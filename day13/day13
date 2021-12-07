@@ -1,0 +1,22 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+use POSIX qw(ceil lround modf);
+
+my ($start, $line) = (int <STDIN>, <STDIN>);
+chomp $line;
+my @ids = split /,/, $line;
+my @running = map { int } grep { $_ ne 'x' } @ids;
+
+my $min_wait = ~0;
+my($id, $wait, $part1);
+
+for $id (@running) {
+	$wait = ceil($start / $id) * $id - $start;
+	if ($wait < $min_wait) {
+		$min_wait = $wait;
+		$part1 = $wait * $id;
+	}
+}
+
+say $part1;
