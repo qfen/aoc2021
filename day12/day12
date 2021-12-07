@@ -1,0 +1,59 @@
+#!/usr/local/bin/perl
+use v5.28;
+
+my($x, $y, $dir) = (0, 0, 0); # dir: increments of pi/2, 0 on +x axis
+my @compass = ('E', 'N', 'W', 'S');
+my(@list, $code, $amt);
+
+while (<STDIN>) {
+	chomp;
+	/^([NSEWFLR])(\d+)$/ or die "weird line";
+	push @list, [$1, int $2];
+}
+
+# part 1
+for (@list) {
+	($code, $amt) = @$_;
+	$code = $compass[$dir] if $code eq 'F';
+	for ($code) {
+		no warnings 'experimental::smartmatch';
+		$x += $amt when 'E';
+		$y += $amt when 'N';
+		$x -= $amt when 'W';
+		$y -= $amt when 'S';
+		$dir = ($dir + $amt / 90) % 4 when 'L';
+		$dir = ($dir - $amt / 90) % 4 when 'R';
+		default { die "unexpected input $code"; }
+	}
+}
+
+say 'part 1: ', abs($x) + abs($y);
+
+# part 2
+my($way_x, $way_y) = (10, 1);
+($x, $y) = (0, 0);
+my @rot = ( [-1, 1], [-1, -1], [1, -1] );
+for (@list) {
+	($code, $amt) = @$_;
+	if ($code eq 'R') {
+		$code = 'L';
+		$amt = 360 - $amt;
+	}
+
+	for ($code) {
+		no warnings 'experimental::smartmatch';
+		$way_x += $amt when 'E';
+		$way_y += $amt when 'N';
+		$way_x -= $amt when 'W';
+		$way_y -= $amt when 'S';
+		($x, $y) = ($x + $amt * $way_x, $y + $amt * $way_y) when 'F';
+		when ('L') {
+			$amt = $amt / 90 - 1;
+			($way_x, $way_y) = ($rot[$amt][0] * $way_y, $rot[$amt][1] * $way_x);
+			($way_x, $way_y) = ($way_y, $way_x) if $amt == 1;
+		}
+		default { die "unexpected input $code"; }
+	}
+}
+
+say 'part 2: ', abs($x) + abs($y);
