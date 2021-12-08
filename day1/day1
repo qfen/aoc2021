@@ -1,9 +1,8 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 use v5.28;
 
 my @lines = map { int } <>;
-my($num, $scan);
-my($part1, $part2);
+my($part1, $part2, $num);
 
 OUTER:
 while ($num = shift @lines) {
