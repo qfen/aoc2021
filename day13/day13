@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 use v5.28;
 use warnings;
-use POSIX qw(ceil lround modf);
+use POSIX 'ceil';
 
 my ($start, $line) = (int <STDIN>, <STDIN>);
 chomp $line;
@@ -19,4 +19,16 @@ for $id (@running) {
 	}
 }
 
-say $part1;
+say 'part 1: ', $part1;
+
+sub gcd($$) { my($a, $b) = @_; ($a, $b) = ($b, $a % $b) while $b; $a; }
+sub lcm($$) { my($a, $b) = @_; $a / gcd($a, $b) * $b; }
+
+my($incr, $n) = (1, 1);
+for (0 .. $#ids) {
+	my($resid, $bus) = ($_, $ids[$_]);
+	next if $bus eq 'x';
+	$n += $incr while(($n + $resid) % $bus);
+	$incr = lcm($incr, $bus);
+}
+say 'part 2: ', $n;
