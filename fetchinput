@@ -37,18 +37,18 @@ $opt{'s'} = defined($opt{'s'}) ? int $opt{'s'} : 2;
 my ($count, $fetch, $status, $cmd, $base, $url, $full);
 
 for $fetch ($opt{'d'} .. $opt{'e'}) {
-	$base = "https://adventofcode.com/$opt{'y'}/day/$day";
+	$base = "https://adventofcode.com/$opt{'y'}/day/$fetch";
 	$cmd = 'curl --no-progress-meter --create-dirs --fail-with-body' .
-		qq( --cookie "$opt{'c'}" --output-dir $opt{'y'}/day$day);
+		qq( --cookie "$opt{'c'}" --output-dir $opt{'y'}/day$fetch);
 
-	for (['', "day$day.html"], ['/input']) {
+	for (['', "day$fetch.html"], ['/input']) {
 		sleep $opt{'s'} if $count++;
 		$url = $base . $_->[0];
 		$full = "$cmd $url" . ($_->[1] ? " -o $_->[1]" : " -O");
 		say "get $url";
 
 		$status = system $full;
-		die "error code $status on day $day" if $status;
+		die "error code $status on day $fetch" if $status;
 	}
 }
 
