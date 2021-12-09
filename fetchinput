@@ -1,10 +1,55 @@
-#!/usr/local/bin/perl
-
+#!/usr/bin/perl
 use v5.28;
 use warnings;
+use Getopt::Std ();
 
-my $cookie = "session=53616c7465645f5f388832df5073806c0d542af44597f2361f073127253982a6bc0c2d5d070800c8336c9baa7556976e";
-my $day = int $ARGV[0] or die "Usage: $0 DAY (where day is in 1..25)";
-warn "fetch day $day";
-my $exit = system(qq!curl -O --create-dirs --output-dir day$day --cookie "$cookie" https://adventofcode.com/2020/day/$day/input!);
-warn "exit status $exit";
+$Getopt::Std::STANDARD_HELP_VERSION = 1;
+my %opt;
+our $VERSION = "0.1";
+sub HELP_MESSAGE {
+	die <<~EOF;
+	Usage: $0 -c COOKIE [-y YEAR] [-d DAY [-e END]] [-s SEC]
+	  -c  (Required) Session cookie for downloading input file
+	  -y  Year 2015-present, default this year
+	  -d  Day to download, default today
+	  -e  Optionally, download a range of days between -d and -e (inclusive)
+	  -s  Sleep between requests to be polite, default 2 sec, can be 1-60
+	EOF
+}
+
+Getopt::Std::getopts('?hc:y:d:e:s:', \%opt) or HELP_MESSAGE();
+
+HELP_MESSAGE() if @opt{qw(y h)} or !$opt{'c'};
+$opt{'c'} =~ s/^=?/session=/;
+
+my ($day, $year) = (localtime time)[3, 5];
+$year += 1900;
+
+$opt{'y'} = defined($opt{'y'}) ? int $opt{'y'} : $year;
+$opt{'d'} = defined($opt{'d'}) ? int $opt{'d'} : $day;
+$opt{'e'} = defined($opt{'e'}) ? int $opt{'e'} : $day;
+$opt{'s'} = defined($opt{'s'}) ? int $opt{'s'} : 2;
+
+2015 <= $opt{'y'} <= $year or die "year must be 2015-present";
+1 <= $opt{'d'} <= $opt{'e'} <= 25 or die "day must be 1-25; end (if specified) cannot be less than day";
+1 <= $opt{'s'} <= 60 or die "sleep time must be 1-60 seconds";
+
+my ($count, $fetch, $status, $cmd, $base, $url, $full);
+
+for $fetch ($opt{'d'} .. $opt{'e'}) {
+	$base = "https://adventofcode.com/$opt{'y'}/day/$day";
+	$cmd = 'curl --no-progress-meter --create-dirs --fail-with-body' .
+		qq( --cookie "$opt{'c'}" --output-dir $opt{'y'}/day$day);
+
+	for (['', "day$day.html"], ['/input']) {
+		sleep $opt{'s'} if $count++;
+		$url = $base . $_->[0];
+		$full = "$cmd $url" . ($_->[1] ? " -o $_->[1]" : " -O");
+		say "get $url";
+
+		$status = system $full;
+		die "error code $status on day $day" if $status;
+	}
+}
+
+say "$count requests OK";
