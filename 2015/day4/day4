@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+use v5.24;
+use warnings;
+use Digest::MD5 'md5_hex';
+
+my $seed = <>;
+chomp $seed;
+my $n = 1;
+
+$n++ while md5_hex("$seed$n") !~ /^00000/;
+
+say 'part 1: ', $n;
