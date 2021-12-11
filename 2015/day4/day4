@@ -10,3 +10,7 @@ my $n = 1;
 $n++ while md5_hex("$seed$n") !~ /^00000/;
 
 say 'part 1: ', $n;
+
+$n++ while md5_hex("$seed$n") !~ /^000000/;
+
+say 'part 2: ', $n;
