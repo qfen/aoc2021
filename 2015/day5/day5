@@ -13,3 +13,15 @@ while (<STDIN>) {
 }
 
 say 'part 1: ', $count;
+
+seek STDIN, 0, 0;
+my $part2;
+
+while (<STDIN>) {
+	chomp;
+	next unless /(.).\1/;
+	next unless /(..).*\1/;
+	$part2++;
+}
+
+say 'part 2: ', $part2;
