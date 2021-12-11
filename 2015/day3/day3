@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+use v5.24;
+use warnings;
+
+my (%part1, $count, $chr);
+my ($x, $y) = (0, 0);
+$part1{'00'} = 1;
+
+my ($turn, %part2_santa, %part2_robot);
+my (@p2_xy) = ([0, 0], [0, 0]);
+$part2_santa{"$p2_xy[0]->@*"}++;
+
+while (read STDIN, $chr, 1) {
+	for ($chr) {
+		no warnings 'experimental::smartmatch';
+		when('<') { $x--; $p2_xy[(++$turn) % 2][0]--; }
+		when('>') { $x++; $p2_xy[(++$turn) % 2][0]++; }
+		when('^') { $y--; $p2_xy[(++$turn) % 2][1]--; }
+		when('v') { $y++; $p2_xy[(++$turn) % 2][1]++; }
+		default { warn "weird direction $chr" }
+	}
+	$part1{"$x$y"}++;
+	$part2_santa{"$p2_xy[0]->@*"}++;
+	$part2_robot{"$p2_xy[1]->@*"}++;
+}
+
+say 'part 1: ', scalar keys %part1;
+$part2_santa{$_} += $part2_robot{$_} for keys %part2_robot;
+say 'part 2: ', scalar keys %part2_santa;
