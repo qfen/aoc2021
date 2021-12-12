@@ -12,17 +12,28 @@ while (<STDIN>) {
 	push $graph{$2}->@*, $1;
 }
 
-my @work = ( ['end'] );
-my ($path, $node);
+my @work = ( ['end', 0] );
+my ($path, $node, $tmplist);
 while ($path = pop @work) {
 	for $node ($graph{$path->[0]}->@*) {
+		$tmplist = [$node, @$path];
 		if ($node eq 'start') {
-			push @routes, ['start', @$path];
-			#printf "route %02d %s\n", scalar @routes, join(' > ', $routes[$#routes]->@*);
-		} elsif ($node =~ /[A-Z]/ or !any { $node eq $_ } @$path) {
-			push @work, [$node, @$path];
+			$routes[$tmplist->[-1]]++;
+		} else {
+			if ($node =~ /[A-Z]/) {
+				push @work, $tmplist;
+			} else {
+				next if $node eq 'end';
+				if (!any { $node eq $_ } @$path) {
+					push @work, $tmplist;
+				} elsif ($tmplist->[-1] == 0) {
+					$tmplist->[-1] = 1;
+					push @work, $tmplist;
+				}
+			}
 		}
 	}
 }
 
-say 'part 1: ', scalar @routes;
+say 'part 1: ', $routes[0];
+say 'part 2: ', $routes[0] + $routes[1];
