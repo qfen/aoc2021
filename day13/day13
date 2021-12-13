@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use v5.28;
+use warnings;
+use List::Util 'reduce';
+
+my (@card, $crease, $y, $part1);
+my $width = 0;
+
+while (<STDIN>) {
+	chomp;
+	last if /^\s*$/;
+	/(\d+),(\d+)/ or die "weird line";
+	$card[$2][$1] = 1;
+	$width = int $1 if $1 > $width;
+}
+
+while (<STDIN>) {
+	/fold along (x|y)=(\d+)/ or die "weird fold line";
+	$crease = int $2;
+
+	# this will die if the crease is less than halfway along the axis
+	if ($1 eq 'y') {
+		for $y (0 .. $#card - $crease + 1) {
+			no warnings 'uninitialized';
+			$card[$crease - $y][$_] |= $card[$crease + $y][$_] for (0 .. $width);
+		}
+		splice @card, $crease;
+	} else {
+		for $y (0 .. $#card) {
+			no warnings 'uninitialized';
+			$card[$y][$crease - $_] |= $card[$y][$crease + $_] for (1 .. $width - $crease);
+			splice $card[$y]->@*, $crease;
+		}
+		$width = $crease - 1;
+	}
+	$part1 = reduce { $a + grep { $_ } @$b } 0, @card unless $part1;
+}
+
+say 'part 1: ', $part1;
+say 'part 2:';
+say map { $_ || ' ' } @$_ for @card;
