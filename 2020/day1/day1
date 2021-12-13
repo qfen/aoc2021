@@ -1,0 +1,23 @@
+#!/usr/bin/env perl
+use v5.28;
+
+my @lines = map { int } <>;
+my($part1, $part2, $num);
+
+OUTER:
+while ($num = shift @lines) {
+	for my $i (0 .. $#lines) {
+		$part1 = $num * $lines[$i] if $num + $lines[$i] == 2020;
+		last OUTER if $part1 and $part2;
+		next if $part2;
+		for ($i + 1 .. $#lines) {
+			if($num + $lines[$i] + $lines[$_] == 2020) {
+				$part2 = $num * $lines[$i] * $lines[$_];
+				last;
+			}
+		}
+	}
+}
+
+say "part 1: ", $part1 // '[failed]';
+say "part 2: ", $part2 // '[failed]';

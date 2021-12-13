@@ -1,0 +1,39 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+use List::Util 'reduce';
+
+my(%mem1, %mem2, @float, @bit, $n, $base);
+my($setmask, $clrmask, $val, $addr);
+while (<STDIN>) {
+	no warnings 'portable';
+	chomp;
+	/^(?:(mask)|mem\[(\d+)\]) = (.*)$/ or die "weird line";
+	$val = $3;
+
+	if (defined $1) {
+		# both parts: compute OR and AND masks
+		$setmask = oct '0b' . $val =~ tr/X/0/r;
+		$clrmask = oct '0b' . $val =~ tr/X/1/r;
+
+		# part 2 only: also track floating 'X' bits
+		@float = ();
+		push @float, pos($val)-1 while $val=~/X/g;
+	} else {
+		# part 1 rules: literal address, modify value with masks
+		$addr = int $2;
+		$mem1{$addr} = $clrmask & ($setmask | int $val);
+
+		# part 2 rules: literal value, only SET bits, and use every
+		# combination for floating ('X') bits
+		$base = sprintf('%036b', $setmask | $addr);
+		for ($n = 0; $n < (1 << @float); $n++) {
+			@bit = split //, sprintf('%0*b', scalar(@float), $n);
+			substr($base, $float[$_], 1, $bit[$_]) for 0 .. $#float;
+			$mem2{oct '0b' . $base} = int $val;
+		}
+	}
+}
+
+say 'part 1: ', reduce { $a + $b } values %mem1;
+say 'part 2: ', reduce { $a + $b } values %mem2;

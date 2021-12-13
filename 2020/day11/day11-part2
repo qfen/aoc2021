@@ -1,0 +1,84 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+use List::Util 'reduce';
+use Data::Dumper;
+
+my (@grid, $row, $col);
+@grid = <STDIN>;
+chomp @grid;
+
+my($lref, @ulref, @upref, @urref, @linear, $seat);
+
+sub dumpgrid {
+	my ($currow, $curcol) = (0, 0);
+	my $ref = $_[0];
+	for my $seat (@$ref) {
+		#print "$seat->[3],$seat->[4]";
+		if ($seat->[3] > $currow) {
+			{ no warnings;
+			print '-' x (length($grid[0]) - $curcol - 1);}
+			print "\n" x ($seat->[3] - $currow);
+			($currow, $curcol) = ($seat->[3], 0);
+		}
+		{ no warnings;
+		print '-' x ($seat->[4] - $curcol - 1);}
+		print $seat->[0];
+		$curcol = $seat->[4];
+	}
+	print "\n";
+}
+
+for $row (0 .. $#grid) {
+	for $col (0 .. length $grid[0]) {
+		next unless substr($grid[$row], $col, 1) eq 'L';
+
+		$seat = [0, 0, [ ], $row, $col];
+		push @linear, $seat;
+
+		push $seat->[2]->@*, $lref if $lref;
+		$lref = $seat;
+
+		push $seat->[2]->@*, $ulref[$col] if $ulref[$col];
+		$ulref[$col] = $seat;
+
+		push $seat->[2]->@*, $upref[$col] if $upref[$col];
+		$upref[$col] = $seat;
+
+		push $seat->[2]->@*, $urref[$col] if $urref[$col];
+		$urref[$col] = $seat;
+	}
+	$lref = undef;
+	pop @ulref;
+	unshift @ulref, undef;
+	shift @urref;
+	push @urref, undef;
+}
+
+my $t = 0;
+my $change = 1;
+while ($change) {
+	$change = 0;
+	for $seat (@linear) {
+		if ($seat->[0] and $seat->[1] >= 5) {
+			$change = 1;
+			$seat->[0] = 0;
+		}
+
+		if (!$seat->[0] and $seat->[1] == 0) {
+			$change = 1;
+			$seat->[0] = 1;
+		}
+
+		$seat->[1] = 0;
+		for ($seat->[2]->@*) {
+			$seat->[1]++ if $_->[0];
+			$_->[1]++ if $seat->[0];
+		}
+	}
+	#say "timestep ", ++$t, " occupied: ", scalar( grep {$_->[0]} @linear );
+	#dumpgrid(\@linear);
+	#sleep 2;
+}
+
+say 'occupied: ', scalar(grep {$_->[0]} @linear);

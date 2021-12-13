@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+use v5.24;
+use warnings;
+
+my ($n, $count);
+
+while (<STDIN>) {
+	chomp;
+	next if /ab|cd|pq|xy/;
+	next unless 3 <= ($n = () = $_ =~ /[aeiou]/g);
+	next unless /(.)\1/;
+	$count++;
+}
+
+say 'part 1: ', $count;
+
+seek STDIN, 0, 0;
+my $part2;
+
+while (<STDIN>) {
+	chomp;
+	next unless /(.).\1/;
+	next unless /(..).*\1/;
+	$part2++;
+}
+
+say 'part 2: ', $part2;

@@ -1,0 +1,31 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+
+my($line, $block, $part2_init);
+my(%part1_set, %part2_temp, %part2_set, $part1_sum, $part2_sum);
+
+$/ = '';
+while ($block = <>) {
+	chomp $block;
+
+	# part 1
+	%part1_set = ();
+	@part1_set{ $block =~ m/[a-z]/g } = ();
+	$part1_sum += scalar keys %part1_set;
+
+	# part 2
+	%part2_set = %part1_set;
+	for $line (split /\n/, $block) {
+		%part2_temp = ();
+		@part2_temp{ $line =~ m/[a-z]/g } = ();
+
+		# set intersection
+		exists($part2_temp{$_}) || delete($part2_set{$_}) for keys %part2_set;
+	}
+
+	$part2_sum += scalar keys %part2_set;
+}
+
+say 'part 1: ', $part1_sum;
+say 'part 2: ', $part2_sum;

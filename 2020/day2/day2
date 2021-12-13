@@ -1,0 +1,20 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+
+my($part1, $part2);
+while (<>) {
+	chomp;
+	$_ =~ /^(\d+)-(\d+) ([a-z]): ([a-z]+)$/ or warn "weird input $_";
+	my ($a, $b, $chr, $str) = (int $1, int $2, $3, $4);
+
+	# part 1
+	my $count = () = $str =~ /$chr/g;
+	$part1++ if $a <= $count <= $b;
+
+	# part 2
+	$part2++ if ($chr eq substr $str, $a-1, 1) ^ ($chr eq substr $str, $b-1, 1);
+}
+
+say "part 1: $part1";
+say "part 2: $part2";

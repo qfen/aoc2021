@@ -1,0 +1,21 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+
+my (@mem, $turn, $say, $prev);
+my $count = $ARGV[0] // 2020;
+
+$/ = ',';
+while (<STDIN>) {
+	chomp;
+	$say = int;
+	$mem[$say] = ++$turn;
+}
+
+while ($turn < $count) {
+	$say = $turn - ($prev // $turn);
+	$prev = $mem[$say];
+	$mem[$say] = ++$turn;
+}
+
+say "turn $count: $say";

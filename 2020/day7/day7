@@ -1,0 +1,42 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+use Data::Dumper;
+
+my %contained_by;
+my %contains;
+my($result, $input);
+my $line;
+
+while ($line = <>) {
+	chomp $line;
+	$line =~ /^(.+?) bags? contain (.*)\.$/g or die "weird rule '$line'";
+	($result, $input) = ($1, $2);
+
+	next if $input =~ /no other bags$/;
+	for (split /,\s+/, $input) {
+		$_ =~ /^(\d+) (.*?) bags?$/ or die "weird fragment '$input'";
+		$contains{$result}->{$2} = $1;
+		$contained_by{$2}->{$result} = $1;
+	}
+}
+
+# part 1
+my(@tocheck,%ok,$tgt);
+@tocheck = keys $contained_by{'shiny gold'}->%*;
+while ($tgt = shift @tocheck) {
+	$ok{$tgt} = 1;
+	push @tocheck, keys $contained_by{$tgt}->%*;
+}
+say scalar keys %ok;
+
+# part 2
+sub recurse {
+	my $tgt = shift;
+	my $sum = 1;
+	for (keys $contains{$tgt}->%*) {
+		$sum += $contains{$tgt}->{$_} * recurse($_);
+	}
+	return $sum;
+}
+say recurse('shiny gold') - 1;

@@ -1,0 +1,38 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+use List::Util qw(any max min);
+
+my $preamble = int $ARGV[0] or die "Usage: $0 PREAMBLE_LENGTH";
+my @input = map { int } <STDIN>;
+
+# part 1
+my (@sums, $num, @invalid);
+for $num (@input) {
+	if ($preamble == @sums) {
+		push @invalid, $num unless any { any { $_ == $num } $_->[1]->@* } @sums;
+		shift @sums;
+	}
+	push $_->[1]->@*, $num + $_->[0] for(@sums);
+	push @sums, [$num, []];
+}
+
+say "part 1: @invalid";
+
+# part 2
+my $tgt = $invalid[0] or die 'no input for part 2';
+my ($a, $b) = (0, 1);
+my $partial = $input[0] + $input[1];
+
+while ($partial != $tgt) {
+	if ($b - $a == 1 or $partial < $tgt) {
+		$b++;
+		$partial += $input[$b];
+	} else {
+		$partial -= $input[$a];
+		$a++;
+	}
+	die 'part 2 failed' if $b > $#input;
+}
+
+say 'part 2: ', min(@input[$a .. $b]) + max(@input[$a .. $b]);

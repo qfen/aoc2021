@@ -1,0 +1,34 @@
+#!/usr/local/bin/perl
+use v5.28;
+use warnings;
+use POSIX 'ceil';
+
+my ($start, $line) = (int <STDIN>, <STDIN>);
+chomp $line;
+my @ids = split /,/, $line;
+my @running = map { int } grep { $_ ne 'x' } @ids;
+
+my $min_wait = ~0;
+my($id, $wait, $part1);
+
+for $id (@running) {
+	$wait = ceil($start / $id) * $id - $start;
+	if ($wait < $min_wait) {
+		$min_wait = $wait;
+		$part1 = $wait * $id;
+	}
+}
+
+say 'part 1: ', $part1;
+
+sub gcd($$) { my($a, $b) = @_; ($a, $b) = ($b, $a % $b) while $b; $a; }
+sub lcm($$) { my($a, $b) = @_; $a / gcd($a, $b) * $b; }
+
+my($incr, $n) = (1, 1);
+for (0 .. $#ids) {
+	my($resid, $bus) = ($_, $ids[$_]);
+	next if $bus eq 'x';
+	$n += $incr while(($n + $resid) % $bus);
+	$incr = lcm($incr, $bus);
+}
+say 'part 2: ', $n;
