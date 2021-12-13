@@ -1,0 +1,80 @@
+#!/bin/sh
+set -o errexit
+set -o noclobber
+set -o noglob
+set -o nounset
+set -o pipefail
+
+usage() {
+	[ $# -eq 0 ] || echo "$@"
+	cat <<EOF
+Usage: $0 -c COOKIE [-a|-i] [-y YEAR] [-d DAY] [-e END]
+Fetch today's puzzle input from https://adventofcode/
+    -c COOKIE (Required) Session cookie for individualized puzzle input
+    -a        Fetch article as day#.html
+    -i        Fetch input (default if -a/-i not specified)
+    -y YEAR   Get a puzzle from a past year
+    -d/-e DAY Get a puzzle (or range of puzzles with -e) from a certain day
+EOF
+	exit 1
+}
+
+range() { # range CHECK MIN MAX ERROR_MESSAGE
+	[ "$1" -ge "$2" ] && [ "$1" -le "$3" ] || usage "$4"
+}
+
+mode=0
+cookie=""
+
+this_year=`date '+%Y'`
+get_year="$this_year"
+
+this_day=`date '+%e'`
+get_day="$this_day"
+get_end=""
+
+while getopts ':c:d:e:y:aih' arg; do
+case $arg in
+	a)	mode=$(( $mode | 1 )) ;;
+	i)	mode=$(( $mode | 2 )) ;;
+	c)	cookie="$OPTARG" ;;
+	d)
+		range "$OPTARG" 1 25 'Day must be 1-25'
+		get_day="$OPTARG" ;;
+	e)
+		range "$OPTARG" 1 25 'End day must be 1-25'
+		get_end="$OPTARG" ;;
+	y)
+		range "$OPTARG" 2015 "$this_year" 'Year must be 2015-present'
+		get_year="$OPTARG" ;;
+
+	h)	usage ;;
+	?)	usage "Unrecognized option $OPTARG" ;;
+esac
+done
+shift $(( $OPTIND - 1 ))
+
+[ -n "$cookie" ] || usage 'Missing required -c COOKIE argument'
+[ "$get_year" -lt "$this_year" -o "$get_day" -le "$this_day" ] || usage 'Day must not be in the future'
+[ "$get_year" -lt "$this_year" -o "$get_end" -le "$this_day" ] || usage 'End day must not be in the future'
+
+[ "$mode" -gt 0 ] || mode=2
+[ -n "$get_end" ] || get_end="$get_day"
+
+delay=0
+while [ $get_day -le $get_end ] ; do
+	sleep $delay
+	basecmd="curl --no-progress-meter --create-dirs --fail-with-body \
+		--cookie session=$cookie --output-dir $get_year/day$get_day"
+	baseurl="https://adventofcode.com/$get_year/day/$get_day"
+	if [ $(( $mode & 1 )) -gt 0 ]; then ( # get article
+		set -x
+		$basecmd -o day$get_day.html $baseurl
+	) fi
+	if [ $(( $mode & 2 )) -gt 0 ]; then ( # get input
+		set -x
+		$basecmd -O $baseurl/input
+	) fi
+	get_day=$(( $get_day + 1 ))
+	delay=1
+done
