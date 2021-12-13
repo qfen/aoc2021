@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 # https://adventofcode.com/2021/day/7
 # https://adventofcode.com/2021/day/7/input
 

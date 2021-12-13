@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 use v5.28;
 use warnings;
 use POSIX 'ceil';

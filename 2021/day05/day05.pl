@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 # https://adventofcode.com/2021/day/5
 # https://adventofcode.com/2021/day/5/input
 # Usage: day05.pl < FILE

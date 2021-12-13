@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 use v5.28;
 
 my($x, $y, $dir) = (0, 0, 0); # dir: increments of pi/2, 0 on +x axis
