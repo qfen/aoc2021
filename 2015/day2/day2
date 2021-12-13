@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use List::Util qw(max min sum);
+
+my (@sides, $part1, $part2);
+
+while (<STDIN>) {
+	chomp;
+	/(\d+)x(\d+)x(\d+)/ or warn "weird line";
+	@sides = ($1 * $2, $2 * $3, $3 * $1);
+	$part2 += 2 * (sum($1, $2, $3) - max($1, $2, $3)) + $1 * $2 * $3;
+	$part1 += 2 * sum(@sides) + min @sides;
+}
+
+say 'part 1: ', $part1;
+say 'part 2: ', $part2;

@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+
+my ($num, $part1, $part2);
+
+while (read STDIN, $_, 1) {
+	$num = ord $_;
+	last if $num == 10;
+	$part1 += -2 * $num + 81;
+	$part2 = tell STDIN if $part1 < 0 and !$part2;
+}
+#$floor += 81 + -2 * ord for split //, $in;
+
+say 'part 1: ', $part1;
+say 'part 2: ', $part2;
