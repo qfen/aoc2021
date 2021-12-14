@@ -54,12 +54,12 @@ esac
 done
 shift $(( $OPTIND - 1 ))
 
+[ "$mode" -gt 0 ] || mode=2
+[ -n "$get_end" ] || get_end="$get_day"
+
 [ -n "$cookie" ] || usage 'Missing required -c COOKIE argument'
 [ "$get_year" -lt "$this_year" -o "$get_day" -le "$this_day" ] || usage 'Day must not be in the future'
 [ "$get_year" -lt "$this_year" -o "$get_end" -le "$this_day" ] || usage 'End day must not be in the future'
-
-[ "$mode" -gt 0 ] || mode=2
-[ -n "$get_end" ] || get_end="$get_day"
 
 delay=0
 while [ $get_day -le $get_end ] ; do
