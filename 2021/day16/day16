@@ -1,8 +1,7 @@
 #!/usr/bin/perl
 use v5.28;
 use warnings;
-use Data::Dumper;
-use List::Util qw(max min product sum0 reduce);
+use List::Util qw(max min product reduce sum0);
 
 sub evaluate {
 	my ($type, $packets) = @_;
@@ -28,7 +27,7 @@ sub literal {
 	do {
 		$continue = shift @$bitref;
 		$working .= join '', splice @$bitref, 0, 4;
-	} while ($continue == 1);
+	} while ($continue);
 
 	no warnings 'portable';
 	return oct '0b' . $working;
