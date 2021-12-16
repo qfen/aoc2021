@@ -1,0 +1,75 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use Data::Dumper;
+use List::Util qw(max min product sum0 reduce);
+
+sub evaluate {
+	my ($type, $packets) = @_;
+
+	for ($type) {
+		no warnings 'experimental::smartmatch';
+		return sum0	map { $_->[3] } @$packets when 0;
+		return product	map { $_->[3] } @$packets when 1;
+		return min	map { $_->[3] } @$packets when 2;
+		return max	map { $_->[3] } @$packets when 3;
+
+		return ( $packets->[0][3] >  $packets->[1][3] ? 1 : 0 ) when 5;
+		return ( $packets->[0][3] <  $packets->[1][3] ? 1 : 0 ) when 6;
+		return ( $packets->[0][3] == $packets->[1][3] ? 1 : 0 ) when 7;
+
+		default { die "unknown type ID $type" }
+	}
+}
+
+sub literal {
+	my $bitref = shift;
+	my ($continue, $working);
+	do {
+		$continue = shift @$bitref;
+		$working .= join '', splice @$bitref, 0, 4;
+	} while ($continue == 1);
+
+	no warnings 'portable';
+	return oct '0b' . $working;
+}
+
+sub packet {
+	my $bitref = shift;
+	my $version = oct '0b' . join '', splice @$bitref, 0, 3;
+	my $type = oct '0b' . join '', splice @$bitref, 0, 3;
+	my $value;
+	my @children;
+	my $part1;
+
+	if ($type == 4) { # literal value
+		$value = literal($bitref);
+	} else {
+		if (1 == shift @$bitref) { # number of packets
+			my $count = oct '0b' . join '', splice @$bitref, 0, 11;
+			push @children, packet($bitref) for (1 .. $count);
+		} else { # total length of packets
+			my $length = oct '0b' . join '', splice @$bitref, 0, 15;
+			my @subset = splice @$bitref, 0, $length;
+			push @children, packet(\@subset) while (@subset);
+		}
+
+		$value = evaluate($type, \@children);
+	}
+
+	$part1 = reduce { $a + $b->[0] } $version, @children;
+	return [$part1, $version, $type, $value, \@children];
+}
+
+my @bits;
+{
+	my $line = <>;
+	chomp $line;
+	@bits = split //, unpack('B*', pack('H*', $line));
+}
+
+# node: [ subtree version sum, version ID, type ID, subtree value, arrayref of children ]
+my $tree = packet(\@bits);
+
+say 'part 1: ', $tree->[0];
+say 'part 2: ', $tree->[3];
