@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use POSIX 'floor';
+use Data::Dumper;
+use constant {
+	COST => 0,
+	HEURISTIC => 1,
+	PATHCOST => 2,
+	FROM => 3,
+	ADJ => 4,
+	ESTIMATE => 5
+};
+
+sub parent { floor( ($_[0] - 1) / 2); }
+
+sub insert {
+	my ($heap, $val) = @_;
+	push @$heap, $val;
+	my ($i, $j) = ($#$heap, parent($#$heap));
+	if ($i > 1) {
+		while ($heap->[$i][ESTIMATE] < $heap->[$j][ESTIMATE]) {
+			$heap->@[$i, $j] = $heap->@[$j, $i];
+			($i, $j) = ($j, parent($i));
+		}
+	}
+	return $heap->[0][ESTIMATE];
+}
+
+sub downheap {
+	my ($heap, $i) = @_;
+	my ($left, $right, $min) = (2 * $i + 1, 2 * $i + 2, $i);
+	if ($left < @$heap and $heap->[$left][ESTIMATE] < $heap->[$i][ESTIMATE]) {
+		$min = $left;
+	}
+	if ($right < @$heap and $heap->[$right][ESTIMATE] < $heap->[$i][ESTIMATE]) {
+		$min = $right;
+	}
+	if ($min != $i) {
+		$heap->@[$min, $i] = $heap->@[$i, $min];
+		downheap($heap, $min);
+	}
+}
+
+sub extract {
+	my $heap = shift;
+	my $ret = shift @$heap;
+
+	if (scalar @$heap) {
+		unshift @$heap, pop @$heap;
+		downheap($heap, 0);
+	}
+
+	return $ret;
+}
+
+sub astar {
+	my $grid = shift;
+	$grid->[0][0][PATHCOST] = 0;
+	my $tgt = $grid->[-1][-1];
+
+	my @heap = ($grid->[0][0]);
+	my (%open, $current, $neighbor, $tentative);
+
+	while (@heap) {
+		$current = extract(\@heap);
+		delete $open{ $current };
+
+		for $neighbor ($current->[ADJ]->@*) {
+			$tentative = $current->[PATHCOST] + $neighbor->[COST];
+			if ($tentative < $neighbor->[PATHCOST]) {
+				$neighbor->@[FROM, PATHCOST, ESTIMATE] =
+					($current,
+					$tentative,
+					$tentative + $neighbor->[HEURISTIC]);
+				if (! exists $open{ $neighbor }) {
+					insert(\@heap, $neighbor);
+					$open{ $neighbor } = 1;
+				}
+			}
+		}
+	}
+
+	return $tgt->[PATHCOST];
+}
+
+my @grid;
+while (<STDIN>) {
+	chomp;
+	push @grid, [ map { [int $_] } (split //, $_) ];
+}
+my $right = $#grid;
+my $bottom = $#{ $grid[0] };
+
+for my $row (0 .. $bottom) {
+	for my $col (0 .. $right) {
+		push $grid[$row][$col]->@*, ( ($right - $col) + ($bottom - $row), ~0, undef, [], ~0, $row, $col);
+		if ($row > 0) {
+			push $grid[$row][$col][ADJ]->@*, $grid[$row-1][$col];
+			push $grid[$row-1][$col][ADJ]->@*, $grid[$row][$col];
+		}
+		if ($col > 0) {
+			push $grid[$row][$col][ADJ]->@*, $grid[$row][$col-1];
+			push $grid[$row][$col-1][ADJ]->@*, $grid[$row][$col];
+		}
+	}
+}
+
+say 'part 1: ', astar(\@grid);
