@@ -84,26 +84,50 @@ sub astar {
 	return $tgt->[PATHCOST];
 }
 
-my @grid;
-while (<STDIN>) {
-	chomp;
-	push @grid, [ map { [int $_] } (split //, $_) ];
-}
-my $right = $#grid;
-my $bottom = $#{ $grid[0] };
-
-for my $row (0 .. $bottom) {
-	for my $col (0 .. $right) {
-		push $grid[$row][$col]->@*, ( ($right - $col) + ($bottom - $row), ~0, undef, [], ~0, $row, $col);
-		if ($row > 0) {
-			push $grid[$row][$col][ADJ]->@*, $grid[$row-1][$col];
-			push $grid[$row-1][$col][ADJ]->@*, $grid[$row][$col];
-		}
-		if ($col > 0) {
-			push $grid[$row][$col][ADJ]->@*, $grid[$row][$col-1];
-			push $grid[$row][$col-1][ADJ]->@*, $grid[$row][$col];
+sub neighbor_setup {
+	my $grid = shift;
+	my $right = $#$grid;
+	my $bottom = $#{ $grid->[0] };
+	for my $row (0 .. $bottom) {
+		for my $col (0 .. $right) {
+			push $grid->[$row][$col]->@*, ( ($right - $col) + ($bottom - $row), ~0, undef, [], ~0, $row, $col);
+			if ($row > 0) {
+				push $grid->[$row][$col][ADJ]->@*, $grid->[$row-1][$col];
+				push $grid->[$row-1][$col][ADJ]->@*, $grid->[$row][$col];
+			}
+			if ($col > 0) {
+				push $grid->[$row][$col][ADJ]->@*, $grid->[$row][$col-1];
+				push $grid->[$row][$col-1][ADJ]->@*, $grid->[$row][$col];
+			}
 		}
 	}
 }
 
-say 'part 1: ', astar(\@grid);
+my (@part1, @part2, @row, @build);
+while (<STDIN>) {
+	chomp;
+	@row = map { int } split //, $_;
+	push @part1, [ map { [ $_ ] } @row ];
+
+	my ($i, $j, $lim) = (0, $#row, 5 * scalar @row);
+	while ($j < $lim - 1) {
+		push @row, ((($row[$i] + 1) % 10) || 1);
+		$i++;
+		$j++;
+	}
+	push @build, [ @row ];
+	push @part2, [ map { [ $_ ] } @row ];
+}
+
+for my $iter (1 .. 4) {
+	for (my $i = 0; $i < @build; $i++) {
+		$build[$i]->@* = map { (($_ + 1) % 10) || 1 } $build[$i]->@*;
+		push @part2, [ map { [ $_ ] } $build[$i]->@* ];
+	}
+}
+
+neighbor_setup(\@part1);
+say 'part 1: ', astar(\@part1);
+
+neighbor_setup(\@part2);
+say 'part 2: ', astar(\@part2);
