@@ -1,0 +1,98 @@
+#!/usr/bin/perl
+use v5.28;
+use feature 'signatures';
+use warnings;
+no warnings 'experimental::signatures';
+
+use Data::Dumper;
+use POSIX qw(ceil floor);
+
+sub snail_read($line) { [ $line =~ /[][0-9]/g ] }
+
+sub snail_add($a, $b) {
+	return '[', @$a, @$b, ']' if @$a and @$b;
+	return @$a if @$a;
+	return @$b if @$b;
+}
+
+sub snail_explode($snail, $i) {
+	#warn join ' ', @$snail, "explode i=$i $snail->[$i]\n";
+	my ($l, $r) = $snail->@[$i, $i + 1];
+	for (reverse 0 .. $i - 1) {
+		if ($snail->[$_] =~ /\d/) {
+			$snail->[$_] += $l;
+			last;
+		}
+	}
+	for ($i + 2 .. $#$snail) {
+		if ($snail->[$_] =~ /\d/) {
+			$snail->[$_] += $r;
+			last;
+		}
+	}
+	splice @$snail, $i - 1, 4, 0;
+}
+
+sub snail_split($snail, $i) {
+	#warn join ' ', @$snail, "split i=$i $snail->[$i]\n";
+	my $num = $snail->[$i] / 2;
+	splice @$snail, $i, 1, '[', floor($num), ceil($num), ']';
+}
+
+sub snail_reduce($snail) {
+	my ($i, $part);
+	BLOCK: {
+		my ($split, $depth) = (0, 0);
+		for $i (keys @$snail) {
+			if ($depth > 4) {
+				snail_explode($snail, $i);
+				redo BLOCK;
+			}
+
+			$part = $snail->[$i];
+			$depth++, next if $part eq '[';
+			$depth--, next if $part eq ']';
+			$split = $i if $part > 9 and !$split;
+		}
+
+		snail_split($snail, $split), redo BLOCK if $split;
+	}
+}
+
+sub snail_mag($snail) {
+	my ($left, $right);
+	my $tok = shift @$snail;
+	if ($tok =~ /\d/) {
+		return $tok;
+	} else {
+		$left = snail_mag($snail);
+		$right = snail_mag($snail);
+		']' eq shift @$snail or die 'bad snail structure';
+		return 3 * $left + 2 * $right;
+	}
+}
+
+my (@part1, @snails, $s);
+while (<STDIN>) {
+	chomp;
+	$s = snail_read($_);
+	push @snails, $s;
+	@part1 = snail_add(\@part1, $s);
+	snail_reduce(\@part1);
+}
+
+say 'part 1: ', snail_mag(\@part1);
+
+my $max = 0;
+my ($mag, $snail);
+for my $i (keys @snails) {
+	for my $j (keys @snails) {
+		next if $i == $j;
+		$snail = [ snail_add($snails[$i], $snails[$j]) ];
+		snail_reduce($snail);
+		$mag = snail_mag($snail);
+		$max = $mag if $mag > $max;
+	}
+}
+
+say 'part 2: ', $max;
