@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use feature 'signatures';
+no warnings 'experimental::signatures';
+
+use POSIX qw(ceil floor);
+
+<STDIN> =~ /^target area: x=(-?\d+)..(-?\d+), y=(-?\d+)..(-?\d+)$/ or die "weird input";
+my ($x1, $x2, $y1, $y2) = map { int } ($1, $2, $3, $4);
+($x1, $x2) = ($x2, $x1) if $x1 > $x2;
+($y1, $y2) = ($y2, $y1) if $y1 < $y2;
+# x1 < x2, but y1 > y2 because they are negative
+
+# simplified quadratic formula for y=(-t^2+t)/2+vt+yb
+sub t($v, $yb) { ($v + 0.5) + sqrt(($v + 0.5)**2 - 2 * $yb); }
+
+# simplified quadratic formula for (n^2+n)/2=x
+sub min_xv($x) { -0.5 + sqrt(0.25 + 2 * $x) }
+
+# guess-and-check for x velocity; simpler due to drag
+sub x_inrange($xv, $x1, $x2, $max) {
+	my @result;
+	my ($t, $x);
+	while ($xv) {
+		$x += $xv;
+		$xv--;
+		$t++;
+		if ($x1 <= $x <= $x2) {
+			push @result, $t;
+		} elsif ($x > $x2) {
+			return @result;
+		}
+	}
+
+	if ($x1 <= $x <= $x2) {
+		push @result, $_ for $t + 1 .. $max;
+		return @result;
+	}
+}
+
+# outer join @$list_a on @$list_b
+sub cross($list_a, $list_b) {
+	map { my $a = $_; map { [$a, $_] } @$list_b } @$list_a;
+}
+
+my $max_yv = -$y2 - 1;
+say 'part 1: ', ($max_yv**2 + $max_yv)/2;
+
+# @time_yv: indexed by timestamp t, arrayrefs of y velocities in range at that time
+my ($yv, $xv, $t1, $t2, @time_yv, $max_time);
+for $yv ($y2 .. $max_yv) {
+	$t1 = ceil(t($yv, $y1));
+	$t2 = floor(t($yv, $y2));
+	push $time_yv[$_]->@*, $yv for $t1 .. $t2;
+}
+
+$max_time = $#time_yv;
+my @time_xv;
+for $xv (ceil(min_xv($x1)) .. $x2) {
+	push $time_xv[$_]->@*, $xv for x_inrange($xv, $x1, $x2, $max_time);
+}
+
+my %velocity;
+for (keys @time_yv) {
+	@velocity{ map { join ',', @$_ } cross($time_xv[$_], $time_yv[$_]) } = ();
+}
+
+say 'part 2: ', scalar keys %velocity;
