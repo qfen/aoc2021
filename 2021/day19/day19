@@ -1,0 +1,81 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use feature 'signatures';
+no warnings 'experimental::signatures';
+use Data::Dumper;
+
+# derived from https://www.euclideanspace.com/maths/algebra/matrix/transforms/examples/index.htm
+my @rots = (
+	[ [ 1, 0, 0], [ 0, 1, 0], [ 0, 0, 1] ],
+	[ [ 1, 0, 0], [ 0, 0,-1], [ 0, 1, 0] ],
+	[ [ 1, 0, 0], [ 0,-1, 0], [ 0, 0,-1] ],
+	[ [ 1, 0, 0], [ 0, 0, 1], [ 0,-1, 0] ],
+	[ [ 0,-1, 0], [ 1, 0, 0], [ 0, 0, 1] ],
+	[ [ 0, 0, 1], [ 1, 0, 0], [ 0, 1, 0] ],
+	[ [ 0, 1, 0], [ 1, 0, 0], [ 0, 0,-1] ],
+	[ [ 0, 0,-1], [ 1, 0, 0], [ 0,-1, 0] ],
+	[ [-1, 0, 0], [ 0,-1, 0], [ 0, 0, 1] ],
+	[ [-1, 0, 0], [ 0, 0,-1], [ 0,-1, 0] ],
+	[ [-1, 0, 0], [ 0, 1, 0], [ 0, 0,-1] ],
+	[ [-1, 0, 0], [ 0, 0, 1], [ 0, 1, 0] ],
+	[ [ 0, 1, 0], [-1, 0, 0], [ 0, 0, 1] ],
+	[ [ 0, 0, 1], [-1, 0, 0], [ 0,-1, 0] ],
+	[ [ 0,-1, 0], [-1, 0, 0], [ 0, 0,-1] ],
+	[ [ 0, 0,-1], [-1, 0, 0], [ 0, 1, 0] ],
+	[ [ 0, 0,-1], [ 0, 1, 0], [ 1, 0, 0] ],
+	[ [ 0, 1, 0], [ 0, 0, 1], [ 1, 0, 0] ],
+	[ [ 0, 0, 1], [ 0,-1, 0], [ 1, 0, 0] ],
+	[ [ 0,-1, 0], [ 0, 0,-1], [ 1, 0, 0] ],
+	[ [ 0, 0,-1], [ 0,-1, 0], [-1, 0, 0] ],
+	[ [ 0,-1, 0], [ 0, 0, 1], [-1, 0, 0] ],
+	[ [ 0, 0, 1], [ 0, 1, 0], [-1, 0, 0] ],
+	[ [ 0, 1, 0], [ 0, 0,-1], [-1, 0, 0] ]
+);
+
+# Euclidean distance^2 (skip the square root step for now)
+sub dist2($x1, $y1, $z1, $x2, $y2, $z2) { ($x2 - $x1)**2 + ($y2 - $y1)**2 + ($z2 - $z1)**2 }
+
+sub matches($a, $b) {
+	my ($ai, $bi, $comp, $result) = (0, 0, 0, 0);
+	while (1) {
+		$comp = $a->[$ai] <=> $b->[$bi];
+		$result++, $ai++, $bi++ if $comp == 0;
+		$ai++ if $comp == -1;
+		$bi++ if $comp == 1;
+		return $result if $ai == @$a or $bi == @$b;
+	}
+}
+
+my $i = 0;
+my @scan;
+while (<STDIN>) {
+	if (/^\s*$/) {
+		next;
+	} elsif (/--- scanner (\d+) ---/) {
+		$i = int $1;
+		next;
+	} elsif (/(-?\d+),(-?\d+),(-?\d+)/) {
+		push $scan[$i]->@*, [ map { int } $1, $2, $3 ];
+	} else {
+		die 'weird line';
+	}
+}
+
+my @dist;
+while (my ($n, $scanner) = each @scan) {
+	for my $i (0 .. $#$scanner - 1) {
+		for my $j ($i + 1 .. $#$scanner) {
+			push $dist[$n]->@*, dist2($scanner->[$i]->@*, $scanner->[$j]->@*);
+		}
+	}
+	$dist[$n]->@* = sort { $a <=> $b } $dist[$n]->@*;
+}
+
+for my $i (keys @dist) {
+	for my $j (keys @dist) {
+		next if $i == $j;
+		say "$i <?> $j: ", matches($dist[$i], $dist[$j]);
+	}
+}
+
