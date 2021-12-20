@@ -1,11 +1,12 @@
 #!/usr/bin/perl
 use v5.24;
 use warnings;
-use List::Util qw(reduce sum);
+use List::Util qw(max reduce sum);
 
 my @lights;
+my @part2;
 my $op;
-my ($x1, $y1, $x2, $y2, $row, $col, $line);
+my ($x1, $y1, $x2, $y2, $row, $col, $line, $op_2);
 
 while ($line = <STDIN>) {
 	chomp $line;
@@ -13,6 +14,7 @@ while ($line = <STDIN>) {
 	($x1, $y1, $x2, $y2) = map { int } ($2, $3, $4, $5);
 
 	$op = $1 eq 'off' ? 0 : ($1 eq 'on' ? 1 : 2);
+	$op_2 = $op || -1;
 	($x1, $x2) = ($x2, $x1) if $x1 > $x2;
 	($y1, $y2) = ($y2, $y1) if $y1 > $y2;
 
@@ -24,11 +26,14 @@ while ($line = <STDIN>) {
 			} else {
 				$lights[$row][$col] = $op;
 			}
+			no warnings 'uninitialized';
+			$part2[$row][$col] = max 0, $op_2 + $part2[$row][$col];
 		}
 	}
 }
 
 {
 	no warnings 'uninitialized';
-	say reduce { $a + sum @$b } 0, @lights;
+	say 'part 1: ', reduce { $a + sum @$b } 0, @lights;
+	say 'part 2: ', reduce { $a + sum @$b } 0, @part2;
 }
