@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use feature 'signatures';
+no warnings 'experimental::signatures';
+use List::Util 'reduce';
+
+sub pix($char = $_) { $char eq '#' ? 1 : 0 }
+sub rev($char = $_) { $char =~ tr/01/.#/r }
+
+$_ = <STDIN>;
+chomp;
+my @key = map { pix } split //;
+my $default = 0;
+
+my @start = map { [ map { pix } split // ] } grep { chomp; $_ } <STDIN>;
+
+sub lookup($img, $row, $col) {
+	my $val = '0b';
+	for my $y ($row - 1 .. $row + 1) {
+		for my $x ($col - 1 .. $col + 1) {
+			if (0 <= $y < @$img and 0 <= $x < @$img[0]->@*) {
+				$val .= $img->[$y][$x];
+			} else {
+				$val .= $default;
+			}
+		}
+	}
+
+	return oct $val;
+}
+
+sub expand($img, $key) {
+	my @out;
+	for my $row (-1 .. @$img) {
+		push @out, [ map { $key[lookup($img, $row, $_)] } (-1 .. @$img) ];
+	}
+
+	# IMPORTANT: the infinite backing space toggles on and off if key[0]
+	# is 1, so our default value for beyond our finite representation must
+	# toggle with it
+	$default ^= $key->[0];
+	return \@out;
+}
+
+my $imgref = \@start;
+my @lit;
+for (1 .. 50) {
+	$imgref = expand($imgref, \@key);
+	#say 'expanded:';
+	#say map({ rev } @$_) for @$imgref;
+	$lit[$_] = reduce { $a + grep { $_ } @$b } 0, @$imgref;
+}
+
+say 'part 1: ', $lit[2];
+say 'part 2: ', $lit[50];
