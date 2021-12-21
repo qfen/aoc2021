@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use List::Util qw|min none|;
+
+my @spot;
+{	local $/;
+	@spot = <STDIN> =~ /starting position: (\d+)$/gm;
+}
+$spot[$_]-- for keys @spot; # convert 1-base to zero-base
+
+my @score;
+my $turn = 0;
+my $count;
+
+sub d100 {
+	state $die = -1;
+	$count++;
+	return 1 + ($die = ($die + 1) % 100);
+}
+
+while (none { $_ >= 1000 } @score) {
+	$spot[$turn] = ( $spot[$turn] + d100() + d100() + d100() ) % 10;
+	$score[$turn] += $spot[$turn] + 1;
+	#say "player $turn spot $spot[$turn] score $score[$turn]";
+	$turn ^= 1;
+}
+
+say $count * min @score;

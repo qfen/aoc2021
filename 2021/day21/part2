@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use List::Util qw|max|;
+
+my ($turn, $ref);
+{
+	local $/;
+	# this is a little too clever
+	$ref->{'0,0'}{join ',', map { $_ - 1 } (<STDIN> =~ /starting position: (\d+)$/gm)} = 1;
+}
+
+my %roll;
+for my $r1 (1 .. 3) {
+	for my $r2 (1 .. 3) {
+		for my $r3 (1 .. 3) {
+			$roll{$r1 + $r2 + $r3}++;
+		}
+	}
+}
+my @dirac = map { [ int $_, $roll{$_} ] } sort keys %roll;
+
+my @wins = (0, 0);
+
+sub advance {
+	my (%next, @pos, @newpos, $old_score, $old_pos, $branch, @pts, @newpts);
+	my $board = shift;
+
+	for my $old_score (keys %$board) {
+		@pts = split /,/, $old_score;
+
+		while ( ($old_pos, $branch) = each $board->{$old_score}->%* ) {
+			@pos = split /,/, $old_pos;
+			for my $inc (@dirac) {
+				@newpos = @pos;
+				$newpos[$turn] = ($pos[$turn] + $inc->[0]) % 10;
+				@newpts = @pts;
+				$newpts[$turn] += $newpos[$turn] + 1;
+
+				if ($newpts[$turn] >= 21) {
+					$wins[$turn] += $branch * $inc->[1];
+				} else {
+					$next{join ',', @newpts}{join ',', @newpos} += $branch * $inc->[1];
+				}
+			}
+		}
+	}
+
+	return \%next;
+}
+
+$turn = 0;
+while ( scalar keys %$ref ) {
+	$ref = advance($ref);
+	#say "turn $turn wins @wins";
+	$turn ^= 1;
+}
+
+say 'part 2: ', max @wins;
