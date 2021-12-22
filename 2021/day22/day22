@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+use v5.28;
+use feature 'signatures';
+use warnings;
+no warnings 'experimental::signatures';
+
+use Data::Dumper;
+use List::Util qw/max min reduce sum0/;
+
+my $op;
+my @c;
+my @cube;
+my $part1 = 0;
+
+sub range_part1($a, $b) { max(0, $a) .. min(100, $b); }
+
+while (<STDIN>) {
+	$op = substr($_, 0, 3) eq 'off' ? 0 : 1;
+	@c = map { $_ + 50 } /-?\d+/g;
+
+	for my $x (range_part1(@c[0,1])) {
+		for my $y (range_part1(@c[2,3])) {
+			for my $z (range_part1(@c[4,5])) {
+				no warnings 'uninitialized';
+				$part1 += ($op - $cube[$x][$y][$z]);
+				$cube[$x][$y][$z] = $op;
+			}
+		}
+	}
+}
+
+say 'part 1: ', $part1;
