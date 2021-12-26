@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+use v5.28;
+use warnings;
+use Data::Dumper;
+
+my (@grid, @head_east, @head_south, $line);
+my $width = 0;
+
+while ($line = <STDIN>) {
+	chomp $line;
+	$width = length $line if length $line > $width;
+	push @grid, [];
+	while ($line =~ /(v|>)/g) {
+		$grid[$#grid][-1 + pos $line] = $1;
+		push( @{$1 eq '>' ? \@head_east : \@head_south}, [$#grid, -1 + pos $line]);
+	}
+}
+
+my ($step, $activity, $loc);
+while () {
+	my (@move_east, @move_south, $cuc); 
+	$activity = undef;
+	$step++;
+
+	for $cuc (@head_east) {
+		$loc = ($cuc->[1] + 1) % $width;
+		if (! $grid[$cuc->[0]][$loc]) {
+			push @move_east, $cuc;
+			$activity = 1;
+		}
+	}
+
+	for $cuc (@move_east) {
+		$grid[$cuc->[0]][$cuc->[1]] = undef;
+		$cuc->[1] = ($cuc->[1] + 1) % $width;
+		die if $grid[$cuc->[0]][$cuc->[1]];
+		$grid[$cuc->[0]][$cuc->[1]] = '>';
+	}
+
+	for $cuc (@head_south) {
+		$loc = ($cuc->[0] + 1) % (scalar @grid);
+		if (! $grid[$loc][$cuc->[1]]) {
+			push @move_south, $cuc;
+			$activity = 1;
+		}
+	}
+
+	for $cuc (@move_south) {
+		$grid[$cuc->[0]][$cuc->[1]] = undef;
+		$cuc->[0] = ($cuc->[0] + 1) % (scalar @grid);
+		die if $grid[$cuc->[0]][$cuc->[1]];
+		$grid[$cuc->[0]][$cuc->[1]] = 'v';
+	}
+
+	last unless $activity;
+}
+
+say 'part 1: ', $step;
