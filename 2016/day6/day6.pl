@@ -3,6 +3,7 @@ use v5.18;
 use warnings;
 
 my @freqs;
+my ($part1, $part2);
 
 while (<>) {
 	chomp;
@@ -11,8 +12,17 @@ while (<>) {
 }
 
 for (@freqs) {
-	for my $k (sort {$_->{$b} <=> $_->{$a}} keys %$_) {
-		say "$k: ", $_->{$k};
+	my ($min, $max);
+
+	for my $k (keys %$_) {
+		no warnings 'uninitialized';
+		$max = $k if $_->{$k} > $_->{$max};
+		$min = $k if $_->{$k} < ($_->{$min} // ~1);
 	}
-	say "next";
+
+	$part1 .= $max;
+	$part2 .= $min;
 }
+
+say "part 1: $part1";
+say "part 2: $part2";
