@@ -5,11 +5,12 @@ use warnings;
 my $grid = [ map { [ (0) x 50 ] } (1 .. 6) ];
 
 while (<>) {
-	m/^	(?:rect [ ] (\d+)x(\d+)) |
+	m/^	(?:rect [ ] (\d+) x (\d+)) |
 		(?:rotate [ ]
-			(?:row[ ]y=(\d+) | column[ ]x=(\d+))
-			[ ] by [ ](\d+)
-		)$/x or die 'weird line';
+			(?:row [ ] y= (\d+) | column [ ] x= (\d+))
+			[ ] by [ ] (\d+)
+		)
+	$/x or die 'weird line';
 
 	if (defined $1) {
 		for my $row (0 .. $2 - 1) {
