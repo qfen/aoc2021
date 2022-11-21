@@ -13,10 +13,10 @@ my $bots = [];
 
 while (<>) {
 	chomp;
-	/^	(?: value[ ] (\d+) [ ]goes[ ]to[ ]bot[ ] (\d+) ) |
-		(?: bot[ ] (\d+)
-			[ ]gives[ ]low[ ]to[ ]bot[ ] (\d+)
-			[ ]and[ ]high[ ]to[ ]bot[ ] (\d+) )
+	/^	(?^:value (\d+) goes to bot (\d+)) |
+		(?: bot [ ] (\d+)
+			(?^: gives low to (bot|output) (\d+))
+			(?^: and high to (bot|output) (\d+)) )
 	$/x or die 'weird line';
 
 	if (defined $1) {
