@@ -1,28 +1,43 @@
 #!/usr/bin/perl
 use v5.18;
 use warnings;
+use List::Util 'product';
 
-# entry = [ id, val_lo, val_hi, from_lo, from_hi, to_lo, to_hi ]
-use constant {
-	ID => 0,
-	VAL => 1,
-	FROM => 2,
-	TO => 3,
-};
-my $bots = [];
+my %graph;
+my @queue;
 
 while (<>) {
-	chomp;
-	/^	(?^:value (\d+) goes to bot (\d+)) |
-		(?: bot [ ] (\d+)
-			(?^: gives low to (bot|output) (\d+))
-			(?^: and high to (bot|output) (\d+)) )
+	/^	(?^:(value (\d+)) goes to (bot \d+)) |
+		(?: (bot [ ] \d+)
+			(?^: gives low to ((?:bot|output) \d+))
+			(?^: and high to ((?:bot|output) \d+)) )
 	$/x or die 'weird line';
 
+	die 'duplicate' if exists $graph{$1 // $4};
+
 	if (defined $1) {
-		push @{ $bots->[$2][VAL] }, int($1);
+		$graph{$1} = [ [ $3, int $2 ] ];
+		push @queue, $graph{$1};
 	} else {
-		push @{ $bots->[$3][TO] }, int($4), int($5);
-		die if 2 < scalar @{ $bots->[$3][TO] };
+		$graph{$4} = [ [ $5, undef ], [ $6, undef ] ];
 	}
 }
+
+while (my $ref = shift @queue) {
+	if (4 == scalar @$ref) {
+		my ($v0, $v1) = splice @$ref, -2;
+		($v0, $v1) = ($v1, $v0) if $v1 < $v0;
+		$ref->[0][1] = $v0;
+		$ref->[1][1] = $v1;
+	}
+
+	for (@$ref) {
+		my ($to, $val) = @$_;
+		die unless defined $val;
+		push $graph{$to}->@*, $val;
+		push @queue, $graph{$to} if 4 == scalar $graph{$to}->@*;
+	}
+}
+
+say 'part 1: ', grep { $graph{$_}->[0][1] == 17 and $graph{$_}->[1][1] == 61 } grep { /^bot/ } keys %graph;
+say 'part 2: ', product map { $graph{"output $_"}->[0] } 0 .. 2;
