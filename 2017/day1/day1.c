@@ -27,6 +27,8 @@ int main() {
 			part2 += input[i] - 48;
 	}
 
+	free(input);
+
 	printf("part 1: %d\npart 2: %d\n", part1, part2);
 
 	return 0;
