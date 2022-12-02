@@ -29,7 +29,8 @@ cookie=""
 this_year=`date '+%Y'`
 get_year="$this_year"
 
-this_day=`date '+%e'`
+_str_day=`date '+%e'`
+this_day=`printf '%d' $_str_day`
 get_day="$this_day"
 get_end=""
 
