@@ -17,18 +17,8 @@ while read line ; do
 	fi
 done
 
-#{
-#	read part1
-#	part2="$part1"
-#	while read line ; do
-#		: $(( part2 += line ))
-#	done
-#}
 while read line ; do
 	: ${part1:=$line}
-#	if [ "$part1" -eq 0 ]; then
-#		part1="$line"
-#	fi
 	: $(( part2 += line ))
 done <<-EOF
 $( sort -nr <&4 | head -3 )
