@@ -10,13 +10,12 @@ sub prio { (ord $_[0]) - ((ord $_[0]) & 0x20 ? 96 : 38) }
 while (<>) {
 	chomp;
 	my %ruck;
-	my $half = length($_) / 2;
 
-	@ruck{ split //, substr($_, 0, $half) } = ();
+	@ruck{ split //, substr($_, 0, length($_) / 2, '') } = ();
 
-	$part1 += prio( first { exists $ruck{$_} } split //, substr($_, $half) );
+	$part1 += prio( first { exists $ruck{$_} } split // );
 
-	@ruck{ split //, substr($_, $half) } = ();
+	@ruck{ split // } = ();
 
 	if ($. % 3 == 1) {
 		$group = \%ruck;
@@ -24,7 +23,7 @@ while (<>) {
 		# set intersection
 		delete $group->{$_} for grep { ! exists $ruck{$_} } keys %$group;
 
-		$part2 += prio((keys %$group)[0]) if ($. % 3 == 0);
+		$part2 += prio((keys %$group)[0]) unless $. % 3;
 	}
 }
 
