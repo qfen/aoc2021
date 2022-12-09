@@ -22,19 +22,19 @@ for my $row (1 .. $y_end - 1) {
 			while () {
 				$x += $dir->[1];
 				$y += $dir->[0];
-				$step++;
 
 				last unless 0 <= $x <= $x_end and 0 <= $y <= $y_end;
+
+				$step++;
+				$max = max $max, $trees->[$y][$x];
 
 				if (!$dist and $trees->[$y][$x] >= $trees->[$row][$col]) {
 					$dist = $step;
 				}
-
-				$max = max $max, $trees->[$y][$x];
 			}
 
 			$vis = 1 if $trees->[$row][$col] > $max;
-			$scene *= $dist // $step - 1;
+			$scene *= $dist // $step;
 		}
 
 		$part1 += $vis;
@@ -42,6 +42,5 @@ for my $row (1 .. $y_end - 1) {
 	}
 }
 
-#say join(' ',  @$_) for @$trees;
 say "part 1: $part1";
 say "part 2: $part2";
