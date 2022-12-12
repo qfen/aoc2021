@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 use v5.18;
 use warnings;
-use Data::Dumper;
 
 my $map = [];
 my $q = [];
@@ -14,16 +13,15 @@ while (<>) {
 	push @$map, [ map { [ -97 + ord, undef ] } split // ];
 
 	if ((my $x = index $_, 'E') >= 0) {
-		$map->[-1][$x][0] = 26;
-		($tgt_y, $tgt_x) = ($. - 1, $x);
+		$map->[-1][$x] = [26, 0];
+		push @$q, [$. - 1, $x];
 	}
 
 	if ((my $x = index $_, 'S') >= 0) {
-		push @$q, [$. - 1, $x];
-		$map->[-1][$x] = [0, 0];
+		$map->[-1][$x][0] = 0;
 	}
 }
-#print Dumper($map); exit;
+
 OO:
 while (@$q) {
 	my ($y, $x) = @{ shift @$q };
@@ -34,10 +32,10 @@ while (@$q) {
 		next unless 0 <= $to_y <= $#$map and 0 <= $to_x < scalar($map->[0]->@*);
 		my $ref = $map->[ $to_y ][ $to_x ];
 
-
-		if (!defined $ref->[1] and ($ref->[0] - $here) <= 1) {
-			if ($tgt_x == $to_x and $tgt_y == $to_y) {
-				say 'part 1: ', $step + 1; last OO; }
+		if (!defined $ref->[1] and (-$ref->[0] + $here) <= 1) {
+			if ($ref->[0] == 0) {
+				say 'part 2: ', $step + 1; last OO;
+			}
 			$ref->[1] = $step + 1;
 			push @$q, [ $to_y, $to_x ];
 		}
