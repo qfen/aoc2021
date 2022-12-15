@@ -65,8 +65,8 @@ shift $(( $OPTIND - 1 ))
 delay=0
 while [ $get_day -le $get_end ] ; do
 	sleep $delay
-	basecmd="curl --no-progress-meter --create-dirs --fail-with-body \
-		--cookie session=$cookie --output-dir $get_year/day$get_day"
+	basecmd="curl -Ss --create-dirs --fail-early \
+		--cookie session=$cookie --output $get_year/day$get_day"
 	baseurl="https://adventofcode.com/$get_year/day/$get_day"
 	if [ $(( $mode & 1 )) -gt 0 ]; then ( # get article
 		set -x
@@ -74,7 +74,7 @@ while [ $get_day -le $get_end ] ; do
 	) fi
 	if [ $(( $mode & 2 )) -gt 0 ]; then ( # get input
 		set -x
-		$basecmd -O $baseurl/input
+		${basecmd}/input ${baseurl}/input
 	) fi
 	get_day=$(( $get_day + 1 ))
 	delay=1
